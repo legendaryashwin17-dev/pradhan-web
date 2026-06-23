@@ -14,7 +14,7 @@ import { useState } from "react";
 
 const NAV = [
   { label: "Home", href: "/" },
-  { label: "Dashboard", href: "/dashboard" },
+  { label: "Dashboard", href: "/dashboard" },{ label: "Pipeline", href: "/dashboard/pipeline" },
   { label: "Monitor", href: "/dashboard/monitor" },
   { label: "Performance", href: "/dashboard/performance" },
   { label: "Configs", href: "/dashboard/configs", active: true },

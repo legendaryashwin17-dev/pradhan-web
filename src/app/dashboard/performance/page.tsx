@@ -15,7 +15,7 @@ import {
 
 const NAV = [
   { label: "Home", href: "/" },
-  { label: "Dashboard", href: "/dashboard" },
+  { label: "Dashboard", href: "/dashboard" },{ label: "Pipeline", href: "/dashboard/pipeline" },
   { label: "Monitor", href: "/dashboard/monitor" },
   { label: "Performance", href: "/dashboard/performance", active: true },
   { label: "Configs", href: "/dashboard/configs" },

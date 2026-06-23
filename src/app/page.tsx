@@ -11,7 +11,7 @@ import { ChevronRight, ExternalLink, Activity, Zap, Target, Cpu, Database, Clock
 import Link from "next/link";
 
 const NAV = [
-  { label: "Dashboard", href: "/dashboard" },
+  { label: "Dashboard", href: "/dashboard" },{ label: "Pipeline", href: "/dashboard/pipeline" },
   { label: "Monitor", href: "/dashboard/monitor" },
   { label: "Performance", href: "/dashboard/performance" },
   { label: "Configs", href: "/dashboard/configs" },

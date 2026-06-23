@@ -15,7 +15,7 @@ import { Activity, Wifi, Clock, RefreshCw } from "lucide-react";
 
 const NAV = [
   { label: "Home", href: "/" },
-  { label: "Dashboard", href: "/dashboard" },
+  { label: "Dashboard", href: "/dashboard" },{ label: "Pipeline", href: "/dashboard/pipeline" },
   { label: "Monitor", href: "/dashboard/monitor", active: true },
   { label: "Performance", href: "/dashboard/performance" },
   { label: "Configs", href: "/dashboard/configs" },

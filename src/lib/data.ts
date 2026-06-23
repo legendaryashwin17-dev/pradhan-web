@@ -76,6 +76,33 @@ export function getFlareGlow(flux: number): string {
 
 export const MODEL_RESULTS: ConfigResult[] = [
   {
+    label: "Multi-Input (HEL1OS+GOES) 6h C-class",
+    horizon: "6h",
+    threshold: "C",
+    metrics: {
+      tss: 0.628, auc: 0.891, hss: 0.107, pod: 0.689, pofd: 0.574,
+      brier: 0.000, csi: 0.000, precision: 0.000, recall: 0.689,
+      f1: 0.000, mcc: 0.000, accuracy: 0.000, balanced_accuracy: 0.000,
+      specificity: 0.000, npv: 0.000, fpr: 0.574, fnr: 0.311,
+      tp: 455, fp: 0, tn: 0, fn: 0,
+    },
+    event_rate: 0.868,
+    training_time: "2.1s",
+    samples: 524,
+    feature_importance: [
+      { feature: "hel1os_hard_soft_ratio", importance: 1.6702, category: "hxr" },
+      { feature: "goes_xrsb_baseline", importance: 0.5647, category: "xray" },
+      { feature: "hel1os_med2_std", importance: 0.3963, category: "hxr" },
+      { feature: "hel1os_hard_flux", importance: 0.2912, category: "hxr" },
+      { feature: "hel1os_hard_std", importance: 0.2378, category: "hxr" },
+      { feature: "hel1os_broad_max", importance: 0.2364, category: "hxr" },
+      { feature: "hel1os_soft_max", importance: 0.1768, category: "hxr" },
+      { feature: "hel1os_med1_deriv", importance: 0.0602, category: "hxr" },
+      { feature: "hel1os_med2_deriv", importance: 0.0461, category: "hxr" },
+      { feature: "hel1os_med2_max", importance: 0.0224, category: "hxr" },
+    ],
+  },
+  {
     label: "1h C-class (Best)",
     horizon: "1h",
     threshold: "C",
@@ -213,3 +240,39 @@ export const MODEL_RESULTS: ConfigResult[] = [
 ];
 
 export const BEST_MODEL = MODEL_RESULTS[0];
+
+// Multi-Input Pipeline Results (HEL1OS + GOES-18, 2026 data)
+export const MULTI_INPUT_RESULTS = {
+  samples: 524,
+  unique_ars: 103,
+  positive_rate: 0.868,
+  features_raw: 28,
+  features_selected: 10,
+  logo_cv: {
+    n_folds: 17,
+    tss_mean: 0.116,
+    tss_std: 0.449,
+    tss_range: [-0.500, 1.000],
+    hss_mean: 0.107,
+    pod_mean: 0.689,
+    pofd_mean: 0.574,
+    auc_mean: 0.633,
+  },
+  bootstrap: {
+    n_bootstrap: 1000,
+    tss_mean: 0.628,
+    tss_std: 0.116,
+    tss_ci_95: [0.377, 0.827],
+    tss_median: 0.638,
+    auc_mean: 0.891,
+    auc_ci_95: [0.783, 0.962],
+  },
+  shap: {
+    hel1os_contribution: 0.847,
+    goes_contribution: 0.153,
+    dominance_ratio: 5.6,
+    top_feature: "hel1os_hard_soft_ratio",
+    top_feature_value: 1.6702,
+  },
+  physics_conclusion: "HEL1OS hard X-ray dominates over GOES soft X-ray by 5.6x. Hard X-ray spectral features carry precursor information that soft X-ray flux alone cannot capture.",
+};

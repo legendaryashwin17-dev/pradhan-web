@@ -13,6 +13,7 @@ import Link from "next/link";
 const NAV = [
   { label: "Home", href: "/" },
   { label: "Dashboard", href: "/dashboard", active: true },
+  { label: "Pipeline", href: "/dashboard/pipeline" },
   { label: "Monitor", href: "/dashboard/monitor" },
   { label: "Performance", href: "/dashboard/performance" },
   { label: "Configs", href: "/dashboard/configs" },
