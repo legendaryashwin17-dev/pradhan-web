@@ -47,7 +47,14 @@ interface StatBlockProps {
   className?: string;
 }
 
+function formatFlux(v: number): string {
+  if (v === 0) return "0.00";
+  if (Math.abs(v) < 0.01) return v.toExponential(2);
+  return v.toFixed(2);
+}
+
 export function StatBlock({ label, value, decimals = 0, suffix = "", color = "#06b6d4", icon, className }: StatBlockProps) {
+  const displayValue = decimals <= 2 && Math.abs(value) < 0.01 ? formatFlux(value) : value.toFixed(decimals);
   return (
     <div className={cn(
       "relative overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] p-4",
@@ -62,7 +69,7 @@ export function StatBlock({ label, value, decimals = 0, suffix = "", color = "#0
           <span className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-medium">{label}</span>
         </div>
         <div className="text-2xl font-bold font-mono" style={{ color }}>
-          <AnimatedCounter value={value} decimals={decimals} suffix={suffix} />
+          {displayValue}{suffix}
         </div>
       </div>
     </div>
