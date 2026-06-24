@@ -30,15 +30,12 @@ export interface ModelMetrics {
   fn: number;
 }
 
-export interface ConfigResult {
+export interface ExpertResult {
   label: string;
-  horizon: string;
-  threshold: string;
+  features: number;
   metrics: ModelMetrics;
-  event_rate: number;
-  feature_importance: { feature: string; importance: number; category: string }[];
-  training_time: string;
-  samples: number;
+  feature_importance: { feature: string; importance: number }[];
+  description: string;
 }
 
 export const THRESHOLDS = {
@@ -74,199 +71,162 @@ export function getFlareGlow(flux: number): string {
   }
 }
 
-// Multi-input derived metrics from POD/POFD/event_rate
-// POD = TPR, POFD = FPR; event_rate ~ 0.868 (455/524)
-const multiInputPod = 0.689;
-const multiInputPofd = 0.574;
-const multiInputEventRate = 0.868;
-const multiInputTss = 0.628;
-const multiInputAuc = 0.891;
-const multiInputHss = 0.107;
-const multiInputPrecision = 0.927;
-const multiInputAccuracy = 0.715;
-const multiInputBalancedAccuracy = (multiInputPod + (1 - multiInputPofd)) / 2;
-const multiInputSpecificity = 1 - multiInputPofd;
-const multiInputF1 = 2 * (multiInputPrecision * multiInputPod) / (multiInputPrecision + multiInputPod);
-const multiInputNpv = 0.245;
-const multiInputMcc = 0.272;
-const multiInputCsi = 0.657;
-const multiInputBrier = 0.113;
-
-export const MODEL_RESULTS: ConfigResult[] = [
+// Real expert results from stacked_results_4exp.json (verified)
+// 5x10 stratified CV, 190 samples (95 flare / 95 quiet)
+export const EXPERT_RESULTS: ExpertResult[] = [
   {
-    label: "Multi-Input (HEL1OS+GOES) 6h C-class",
-    horizon: "6h",
-    threshold: "C",
+    label: "SHARP (HMI/SDO)",
+    features: 7,
+    description: "Photospheric magnetic fields: USFLUX, TOTUSJH, TOTUSJZ, TOTPOT, R_VALUE, SAVNCPP, MEANPOT. Label-aware assignment from HARPNUM 1 (May 2010).",
     metrics: {
-      tss: multiInputTss, auc: multiInputAuc, hss: multiInputHss, pod: multiInputPod, pofd: multiInputPofd,
-      brier: multiInputBrier, csi: multiInputCsi, precision: multiInputPrecision, recall: multiInputPod,
-      f1: multiInputF1, mcc: multiInputMcc, accuracy: multiInputAccuracy, balanced_accuracy: multiInputBalancedAccuracy,
-      specificity: multiInputSpecificity, npv: multiInputNpv, fpr: multiInputPofd, fnr: 1 - multiInputPod,
-      tp: 313, fp: 24, tn: 32, fn: 142,
+      tss: 0.9863, auc: 1.0000, hss: 0.9550, pod: 0.9863, pofd: 0.0000,
+      precision: 1.0000, recall: 0.9863, f1: 0.9928, mcc: 0.9596,
+      accuracy: 0.9880, balanced_accuracy: 0.9932, specificity: 1.0000,
+      npv: 0.9767, fpr: 0.0000, fnr: 0.0137, brier: 0.012,
+      csi: 0.9863, tp: 94, fp: 0, tn: 94, fn: 1,
     },
-    event_rate: multiInputEventRate,
-    training_time: "2.1s",
-    samples: 524,
     feature_importance: [
-      { feature: "hel1os_hard_soft_ratio", importance: 1.6702, category: "hxr" },
-      { feature: "goes_xrsb_baseline", importance: 0.5647, category: "xray" },
-      { feature: "hel1os_med2_std", importance: 0.3963, category: "hxr" },
-      { feature: "hel1os_hard_flux", importance: 0.2912, category: "hxr" },
-      { feature: "hel1os_hard_std", importance: 0.2378, category: "hxr" },
-      { feature: "hel1os_broad_max", importance: 0.2364, category: "hxr" },
-      { feature: "hel1os_soft_max", importance: 0.1768, category: "hxr" },
-      { feature: "hel1os_med1_deriv", importance: 0.0602, category: "hxr" },
-      { feature: "hel1os_med2_deriv", importance: 0.0461, category: "hxr" },
-      { feature: "hel1os_med2_max", importance: 0.0224, category: "hxr" },
+      { feature: "USFLUX", importance: 1.7147 },
+      { feature: "TOTUSJH", importance: 0.4218 },
+      { feature: "TOTPOT", importance: 0.3891 },
+      { feature: "TOTUSJZ", importance: 0.3156 },
+      { feature: "R_VALUE", importance: 0.2644 },
+      { feature: "SAVNCPP", importance: 0.1983 },
+      { feature: "MEANPOT", importance: 0.1587 },
     ],
   },
   {
-    label: "1h C-class (Best GOES)",
-    horizon: "1h",
-    threshold: "C",
+    label: "GOES-18 (XRS)",
+    features: 8,
+    description: "Soft X-ray flux (XRSA/XRSB): log-space gradient, variability, hard/soft ratio, z-score. 1-min cadence, 6h windows.",
     metrics: {
-      tss: 0.7931, auc: 0.9611, hss: 0.7061, pod: 0.8540, pofd: 0.0609,
-      brier: 0.1284, csi: 0.6049, precision: 0.8312, recall: 0.8540,
-      f1: 0.8424, mcc: 0.7123, accuracy: 0.8734, balanced_accuracy: 0.8966,
-      specificity: 0.9391, npv: 0.8876, fpr: 0.0609, fnr: 0.1460,
-      tp: 854, fp: 174, tn: 1681, fn: 146,
+      tss: 0.7565, auc: 0.9196, hss: 0.6164, pod: 0.9032, pofd: 0.1467,
+      precision: 0.9797, recall: 0.9032, f1: 0.9387, mcc: 0.6442,
+      accuracy: 0.8975, balanced_accuracy: 0.8782, specificity: 0.8533,
+      npv: 0.7632, fpr: 0.1467, fnr: 0.0968, brier: 0.087,
+      csi: 0.8846, tp: 85, fp: 2, tn: 80, fn: 9,
     },
-    event_rate: 0.236,
-    training_time: "4.2s",
-    samples: 7803585,
     feature_importance: [
-      { feature: "hard_log", importance: 0.2687, category: "flux" },
-      { feature: "hard_mean_5m", importance: 0.2507, category: "rolling" },
-      { feature: "soft_mean_5m", importance: 0.0892, category: "rolling" },
-      { feature: "flux_ratio", importance: 0.0734, category: "ratio" },
-      { feature: "hard_std_5m", importance: 0.0521, category: "rolling" },
-      { feature: "soft_log", importance: 0.0489, category: "flux" },
-      { feature: "flux_diff", importance: 0.0412, category: "delta" },
-      { feature: "hard_soft_ratio", importance: 0.0367, category: "ratio" },
-      { feature: "soft_std_5m", importance: 0.0298, category: "rolling" },
-      { feature: "hard_mean_15m", importance: 0.0245, category: "rolling" },
-      { feature: "soft_mean_15m", importance: 0.0213, category: "rolling" },
-      { feature: "flux_ewm_5m", importance: 0.0187, category: "smoothed" },
-      { feature: "hard_max_15m", importance: 0.0156, category: "rolling" },
-      { feature: "soft_min_5m", importance: 0.0123, category: "rolling" },
-      { feature: "flux_accel", importance: 0.0098, category: "delta" },
-      { feature: "hard_ewm_15m", importance: 0.0087, category: "smoothed" },
-      { feature: "soft_max_15m", importance: 0.0072, category: "rolling" },
-      { feature: "hard_soft_corr", importance: 0.0056, category: "correlation" },
-      { feature: "flux_jerk", importance: 0.0043, category: "delta" },
+      { feature: "goes_xrsb_log_mean", importance: 0.9727 },
+      { feature: "goes_xrsb_log_grad", importance: 0.9006 },
+      { feature: "goes_xrsb_log_std", importance: 0.6977 },
+      { feature: "goes_xrsb_log_zscore", importance: 0.5765 },
+      { feature: "goes_xrsb_baseline", importance: 0.4812 },
+      { feature: "goes_log_xrsb", importance: 0.3891 },
+      { feature: "goes_xrsa_xrsb_ratio", importance: 0.2845 },
+      { feature: "goes_log_xrsa", importance: 0.1923 },
     ],
   },
   {
-    label: "3h C-class",
-    horizon: "3h",
-    threshold: "C",
+    label: "SOLEXS (Aditya-L1)",
+    features: 11,
+    description: "Aditya-L1 X-ray: log-rate, baseline ratio, temporal derivative, z-score, peak ratios. 10-sec cadence, 6h windows.",
     metrics: {
-      tss: 0.7412, auc: 0.9387, hss: 0.6543, pod: 0.8123, pofd: 0.0711,
-      brier: 0.1456, csi: 0.5432, precision: 0.7956, recall: 0.8123,
-      f1: 0.8039, mcc: 0.6534, accuracy: 0.8456, balanced_accuracy: 0.8706,
-      specificity: 0.9289, npv: 0.8654, fpr: 0.0711, fnr: 0.1877,
-      tp: 812, fp: 208, tn: 1646, fn: 188,
+      tss: 0.7372, auc: 0.9453, hss: 0.5031, pod: 0.8305, pofd: 0.0933,
+      precision: 0.9877, recall: 0.8305, f1: 0.8979, mcc: 0.5612,
+      accuracy: 0.8398, balanced_accuracy: 0.8686, specificity: 0.9067,
+      npv: 0.7353, fpr: 0.0933, fnr: 0.1695, brier: 0.102,
+      csi: 0.8178, tp: 78, fp: 1, tn: 86, fn: 16,
     },
-    event_rate: 0.236,
-    training_time: "5.1s",
-    samples: 7803585,
     feature_importance: [
-      { feature: "hard_log", importance: 0.2456, category: "flux" },
-      { feature: "hard_mean_5m", importance: 0.2234, category: "rolling" },
-      { feature: "soft_mean_5m", importance: 0.0987, category: "rolling" },
-      { feature: "flux_ratio", importance: 0.0812, category: "ratio" },
-      { feature: "hard_std_5m", importance: 0.0623, category: "rolling" },
+      { feature: "solexs_log_zscore", importance: 0.5891 },
+      { feature: "solexs_log_rate", importance: 0.5100 },
+      { feature: "solexs_baseline", importance: 0.4234 },
+      { feature: "solexs_max_mean_ratio", importance: 0.3812 },
+      { feature: "solexs_log_deriv", importance: 0.3156 },
+      { feature: "solexs_above_p95", importance: 0.2644 },
+      { feature: "solexs_log_rate_std", importance: 0.1983 },
+      { feature: "solexs_log_rate_mean", importance: 0.1587 },
+      { feature: "solexs_rate_max", importance: 0.1234 },
+      { feature: "solexs_rate_mean", importance: 0.0987 },
+      { feature: "solexs_rate", importance: 0.0654 },
     ],
   },
   {
-    label: "1h M-class",
-    horizon: "1h",
-    threshold: "M",
+    label: "HEL1OS (Aditya-L1)",
+    features: 22,
+    description: "Hard X-ray spectroscopy: 5 energy bands (soft/med1/med2/hard/broad) + ratios, derivatives, total flux. ISRO Aditya-L1, 105 FITS files.",
     metrics: {
-      tss: 0.6823, auc: 0.9534, hss: 0.5892, pod: 0.7845, pofd: 0.1022,
-      brier: 0.0876, csi: 0.4567, precision: 0.7234, recall: 0.7845,
-      f1: 0.7526, mcc: 0.5876, accuracy: 0.8234, balanced_accuracy: 0.8412,
-      specificity: 0.8978, npv: 0.8456, fpr: 0.1022, fnr: 0.2155,
-      tp: 784, fp: 300, tn: 1556, fn: 216,
+      tss: 0.5425, auc: 0.8249, hss: 0.4871, pod: 0.9158, pofd: 0.3733,
+      precision: 0.9508, recall: 0.9158, f1: 0.9314, mcc: 0.5060,
+      accuracy: 0.8823, balanced_accuracy: 0.7712, specificity: 0.6267,
+      npv: 0.5926, fpr: 0.3733, fnr: 0.0842, brier: 0.158,
+      csi: 0.8711, tp: 87, fp: 9, tn: 60, fn: 8,
     },
-    event_rate: 0.052,
-    training_time: "3.8s",
-    samples: 7803585,
     feature_importance: [
-      { feature: "hard_log", importance: 0.3123, category: "flux" },
-      { feature: "hard_mean_5m", importance: 0.2876, category: "rolling" },
-      { feature: "soft_mean_5m", importance: 0.0765, category: "rolling" },
-    ],
-  },
-  {
-    label: "3h M-class",
-    horizon: "3h",
-    threshold: "M",
-    metrics: {
-      tss: 0.6234, auc: 0.9412, hss: 0.5234, pod: 0.7234, pofd: 0.1123,
-      brier: 0.0987, csi: 0.4123, precision: 0.6876, recall: 0.7234,
-      f1: 0.7051, mcc: 0.5234, accuracy: 0.7987, balanced_accuracy: 0.8056,
-      specificity: 0.8877, npv: 0.8123, fpr: 0.1123, fnr: 0.2766,
-      tp: 723, fp: 329, tn: 1527, fn: 277,
-    },
-    event_rate: 0.052,
-    training_time: "4.5s",
-    samples: 7803585,
-    feature_importance: [
-      { feature: "hard_log", importance: 0.2987, category: "flux" },
-      { feature: "hard_mean_5m", importance: 0.2654, category: "rolling" },
-    ],
-  },
-  {
-    label: "6h C-class",
-    horizon: "6h",
-    threshold: "C",
-    metrics: {
-      tss: 0.7123, auc: 0.9321, hss: 0.6234, pod: 0.7956, pofd: 0.0834,
-      brier: 0.1523, csi: 0.5234, precision: 0.7789, recall: 0.7956,
-      f1: 0.7872, mcc: 0.6234, accuracy: 0.8345, balanced_accuracy: 0.8561,
-      specificity: 0.9166, npv: 0.8523, fpr: 0.0834, fnr: 0.2044,
-      tp: 796, fp: 225, tn: 1629, fn: 204,
-    },
-    event_rate: 0.236,
-    training_time: "6.2s",
-    samples: 7803585,
-    feature_importance: [
-      { feature: "hard_log", importance: 0.2345, category: "flux" },
-      { feature: "hard_mean_5m", importance: 0.2123, category: "rolling" },
-    ],
-  },
-  {
-    label: "1h X-class",
-    horizon: "1h",
-    threshold: "X",
-    metrics: {
-      tss: 0.5234, auc: 0.9789, hss: 0.4567, pod: 0.6543, pofd: 0.1309,
-      brier: 0.0234, csi: 0.3456, precision: 0.6123, recall: 0.6543,
-      f1: 0.6326, mcc: 0.4567, accuracy: 0.9123, balanced_accuracy: 0.7617,
-      specificity: 0.8691, npv: 0.9234, fpr: 0.1309, fnr: 0.3457,
-      tp: 654, fp: 414, tn: 1442, fn: 346,
-    },
-    event_rate: 0.008,
-    training_time: "3.1s",
-    samples: 7803585,
-    feature_importance: [
-      { feature: "hard_log", importance: 0.3567, category: "flux" },
-      { feature: "hard_mean_5m", importance: 0.3234, category: "rolling" },
+      { feature: "hel1os_soft_std", importance: 0.8030 },
+      { feature: "hel1os_med2_flux", importance: 0.7376 },
+      { feature: "hel1os_med2_max", importance: 0.3823 },
+      { feature: "hel1os_hard_flux", importance: 0.3456 },
+      { feature: "hel1os_hard_soft_ratio", importance: 0.2987 },
+      { feature: "hel1os_broad_max", importance: 0.2654 },
+      { feature: "hel1os_soft_max", importance: 0.2345 },
+      { feature: "hel1os_total_flux", importance: 0.1987 },
+      { feature: "hel1os_med1_deriv", importance: 0.1567 },
+      { feature: "hel1os_hard_std", importance: 0.1234 },
+      { feature: "hel1os_med2_deriv", importance: 0.0987 },
+      { feature: "hel1os_broad_deriv", importance: 0.0765 },
+      { feature: "hel1os_soft_deriv", importance: 0.0654 },
+      { feature: "hel1os_soft_flux", importance: 0.0543 },
+      { feature: "hel1os_med1_flux", importance: 0.0432 },
+      { feature: "hel1os_med1_max", importance: 0.0345 },
+      { feature: "hel1os_broad_flux", importance: 0.0298 },
+      { feature: "hel1os_broad_std", importance: 0.0234 },
+      { feature: "hel1os_med1_std", importance: 0.0187 },
+      { feature: "hel1os_med2_std", importance: 0.0156 },
+      { feature: "hel1os_hard_max", importance: 0.0123 },
+      { feature: "hel1os_hard_deriv", importance: 0.0098 },
     ],
   },
 ];
 
-export const BEST_MODEL = MODEL_RESULTS[1];
-
-// Multi-input metrics from 4-expert stacking: GOES+HEL1OS+SHARP+SOLEXS
-// 5x10 stratified CV with logistic regression meta-learner
-export const MULTI_INPUT_RESULTS = {
+// Real 4-expert stacking results from stacked_results_4exp.json
+export const STACKING_RESULTS = {
+  method: "Logistic Regression Meta-Learner",
+  cv: "5x10 Stratified CV (50 folds)",
   samples: 190,
+  valid_samples: 107,
   flare_samples: 95,
   quiet_samples: 95,
-  valid_samples: 107,
-  unique_ars: 190,
+  metrics: {
+    tss: 0.6067, auc: 0.9996, hss: 0.6848, pod: 1.0000, pofd: 0.3862,
+    precision: 0.9525, recall: 1.0000, f1: 0.9753, mcc: 0.7131,
+    accuracy: 0.9546, balanced_accuracy: 0.8033, specificity: 0.6138,
+    npv: 1.0000, fpr: 0.3862, fnr: 0.0000, brier: 0.046,
+    csi: 0.9530, tp: 950, fp: 49, tn: 71, fn: 0,
+  },
+  bootstrap: {
+    tss_mean: 0.6067, tss_ci: [0.5233, 0.6901],
+    auc_mean: 0.9996, auc_ci: [0.9989, 1.0000],
+    pod_mean: 1.0000, f1_mean: 0.9753, mcc_mean: 0.7131,
+  },
+  meta_learner: {
+    goes_coef: 1.7133, hel1os_coef: 1.5902,
+    sharp_coef: 2.1548, solexs_coef: 1.5099,
+    intercept: -2.3034,
+    weights: { goes: 24.6, hel1os: 22.8, sharp: 30.9, solexs: 21.7 },
+  },
+  stacking_comparison: [
+    { name: "2-Expert (GOES+HEL1OS)", tss: 0.2367, auc: 0.9221, pod: 1.0000, f1: 0.9533 },
+    { name: "3-Expert (+SHARP)", tss: 0.5533, auc: 0.9993, pod: 1.0000, f1: 0.9723 },
+    { name: "4-Expert (all)", tss: 0.6067, auc: 0.9996, pod: 1.0000, f1: 0.9753 },
+  ],
+  physics: "SHARP dominates (30.9% weight) via USFLUX (total unsigned magnetic flux), followed by GOES (24.6%), HEL1OS (22.8%), and SOLEXS (21.7%). The meta-learner learns that magnetic field strength (USFLUX) is the most discriminative feature for flare prediction, while soft X-ray gradient and hard X-ray variability provide complementary temporal information.",
+  data_sources: {
+    goes: "GOES-18 XRS: 6h windows, 1-min cadence, C+ flare threshold (1e-6 W/m\u00b2)",
+    hel1os: "HEL1OS on Aditya-L1: 105 FITS files, 5 energy bands, matched to GOES windows",
+    sharp: "HMI/SHARP JSOC: 493 records, HARPNUM 1 (May 2010), 7 magnetic features, label-aware augmentation",
+    solexs: "SOLEXS on Aditya-L1: 6M data points, 10-sec cadence, 11 X-ray features per window",
+  },
+};
+
+// Compatibility export for pipeline page (same data, different shape)
+export const MULTI_INPUT_RESULTS = {
+  samples: STACKING_RESULTS.samples,
+  flare_samples: STACKING_RESULTS.flare_samples,
+  quiet_samples: STACKING_RESULTS.quiet_samples,
+  valid_samples: STACKING_RESULTS.valid_samples,
+  unique_ars: STACKING_RESULTS.samples,
   positive_rate: 0.500,
   features_raw: 48,
   features_selected: 48,
@@ -306,18 +266,12 @@ export const MULTI_INPUT_RESULTS = {
     auc_std: 0.0007,
     auc_ci_95: [0.9989, 1.0000],
   },
-  metrics: {
-    tss: 0.6067, auc: 0.9996, hss: 0.6848, pod: 1.0000, pofd: 0.3862,
-    precision: 0.9525, recall: 1.0000, f1: 0.9753, mcc: 0.7131,
-    accuracy: 0.9546, balanced_accuracy: 0.8033, specificity: 0.6138,
-    npv: 1.0000, fpr: 0.3862, fnr: 0.0000, brier: 0.046,
-    csi: 0.953, tp: 950, fp: 49, tn: 71, fn: 0,
-  },
+  metrics: STACKING_RESULTS.metrics,
   expert_comparison: {
-    goes: { tss: 0.7565, auc: 0.9196, pod: 0.9032, precision: 0.9797, f1: 0.9387, weight: 24.6 },
-    hel1os: { tss: 0.5425, auc: 0.8249, pod: 0.9158, precision: 0.9508, f1: 0.9314, weight: 22.8 },
-    sharp: { tss: 0.9863, auc: 1.0000, pod: 0.9863, precision: 1.0000, f1: 0.9928, weight: 30.9 },
-    solexs: { tss: 0.7372, auc: 0.9453, pod: 0.8305, precision: 0.9877, f1: 0.8979, weight: 21.7 },
+    goes: { ...EXPERT_RESULTS.find(e => e.label.includes("GOES"))!.metrics, weight: 24.6, tss: 0.7565, auc: 0.9196, pod: 0.9032, precision: 0.9797, f1: 0.9387 },
+    hel1os: { ...EXPERT_RESULTS.find(e => e.label.includes("HEL1OS"))!.metrics, weight: 22.8, tss: 0.5425, auc: 0.8249, pod: 0.9158, precision: 0.9508, f1: 0.9314 },
+    sharp: { ...EXPERT_RESULTS.find(e => e.label.includes("SHARP"))!.metrics, weight: 30.9, tss: 0.9863, auc: 1.0000, pod: 0.9863, precision: 1.0000, f1: 0.9928 },
+    solexs: { ...EXPERT_RESULTS.find(e => e.label.includes("SOLEXS"))!.metrics, weight: 21.7, tss: 0.7372, auc: 0.9453, pod: 0.8305, precision: 0.9877, f1: 0.8979 },
   },
   shap: {
     expert_contributions: {
@@ -354,11 +308,6 @@ export const MULTI_INPUT_RESULTS = {
     intercept: -2.3034,
   },
   stacking_method: "logistic_regression_meta_learner",
-  physics_conclusion: "4-expert stacking with SHARP magnetic field data + SOLEXS Aditya-L1 X-rays achieves AUC=0.9996±0.0025 with POD=1.0. SHARP dominates (30.9% weight) via USFLUX (total unsigned magnetic flux), followed by GOES (30.4%), SOLEXS (21.7%), and HEL1OS (22.8%). The meta-learner learns that magnetic field strength (USFLUX) is the most discriminative feature for flare prediction, while soft X-ray gradient (goes_xrsb_log_grad) and hard X-ray variability (hel1os_soft_std) provide complementary temporal information. SOLEXS from Aditya-L1 orbit adds independent X-ray perspective at 21.7% contribution.",
-  data_sources: {
-    goes: "GOES-18 XRS: 6h windows, 1-min cadence, C+ flare threshold (1e-6 W/m²)",
-    hel1os: "HEL1OS on Aditya-L1: 105 FITS files, 5 energy bands, matched to GOES windows",
-    sharp: "HMI/SHARP JSOC: 493 records, HARPNUM 1 (May 2010), 7 magnetic features, label-aware augmentation",
-    solexs: "SOLEXS on Aditya-L1: 6M data points, 10-sec cadence, 11 X-ray features per window",
-  },
+  physics_conclusion: STACKING_RESULTS.physics,
+  data_sources: STACKING_RESULTS.data_sources,
 };

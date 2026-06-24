@@ -6,8 +6,8 @@ import { GlowingCard } from "@/components/aceternity/glowing-card";
 import { RadialGauge } from "@/components/aceternity/radial-gauge";
 import { StatBlock } from "@/components/aceternity/animated-counter";
 import { SolarFlareIndicator, PulseRing } from "@/components/aceternity/solar-effects";
-import { BEST_MODEL, getFlareClass } from "@/lib/data";
-import { Activity, BarChart3, Settings, Sun, Zap, Target, Cpu, TrendingUp, Shield, AlertTriangle } from "lucide-react";
+import { getFlareClass, STACKING_RESULTS, EXPERT_RESULTS } from "@/lib/data";
+import { Activity, BarChart3, Settings, Sun, Zap, Target, Cpu, TrendingUp, Shield, AlertTriangle, Database, Layers } from "lucide-react";
 import Link from "next/link";
 
 const NAV = [
@@ -20,7 +20,8 @@ const NAV = [
 ];
 
 export default function DashboardPage() {
-  const m = BEST_MODEL.metrics;
+  const sr = STACKING_RESULTS;
+  const m = sr.metrics;
   const flux = 2.34e-7;
   const cls = getFlareClass(flux);
 
@@ -30,11 +31,11 @@ export default function DashboardPage() {
       <AuroraBackground className="pt-28 pb-16 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-1">Dashboard</h1>
-            <p className="text-white/40 text-sm">Solar flare monitoring and model performance overview</p>
+            <h1 className="text-3xl font-bold text-white mb-1">PRADHAN Dashboard</h1>
+            <p className="text-white/40 text-sm">4-Expert Stacking Solar Flare Prediction — GOES-18 + HEL1OS + HMI/SHARP + SOLEXS</p>
           </motion.div>
 
-          {/* Status */}
+          {/* Live Status */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <GlowingCard className="p-6 mb-6" glowColor="#06b6d4">
               <div className="flex items-center justify-between flex-wrap gap-6">
@@ -57,10 +58,13 @@ export default function DashboardPage() {
             </GlowingCard>
           </motion.div>
 
-          {/* Gauges */}
+          {/* Model Gauges */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
             <GlowingCard className="p-6 mb-6" glowColor="#30d158">
-              <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-4 font-medium">Model Metrics</div>
+              <div className="flex items-center gap-2 mb-4">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-medium">4-Expert Stacked Model (5x10 CV)</div>
+              </div>
               <div className="flex items-center justify-center gap-6 flex-wrap">
                 <RadialGauge value={m.tss} label="TSS" color="#06b6d4" glowColor="#22d3ee" size={120} />
                 <RadialGauge value={m.auc} label="AUC" color="#30d158" glowColor="#4ade80" size={120} />
@@ -68,6 +72,9 @@ export default function DashboardPage() {
                 <RadialGauge value={m.hss} label="HSS" color="#8b5cf6" glowColor="#a78bfa" size={120} />
                 <RadialGauge value={m.precision} label="Prec." color="#3b82f6" glowColor="#60a5fa" size={120} />
                 <RadialGauge value={m.f1} label="F1" color="#ec4899" glowColor="#f472b6" size={120} />
+              </div>
+              <div className="text-center mt-3 text-xs text-white/30">
+                Bootstrap TSS 95% CI: [{sr.bootstrap.tss_ci[0].toFixed(3)}, {sr.bootstrap.tss_ci[1].toFixed(3)}]
               </div>
             </GlowingCard>
           </motion.div>
@@ -81,7 +88,7 @@ export default function DashboardPage() {
                   <Activity className="w-5 h-5 text-neon-cyan" />
                 </div>
                 <h3 className="text-base font-semibold text-white mb-1.5">Live Monitor</h3>
-                <p className="text-sm text-white/35">Real-time X-ray flux and flare classification</p>
+                <p className="text-sm text-white/35">Real-time X-ray flux, multi-instrument light curves, threshold dial</p>
               </GlowingCard>
             </Link>
             <Link href="/dashboard/performance">
@@ -90,7 +97,7 @@ export default function DashboardPage() {
                   <BarChart3 className="w-5 h-5 text-neon-green" />
                 </div>
                 <h3 className="text-base font-semibold text-white mb-1.5">Model Performance</h3>
-                <p className="text-sm text-white/35">Metrics, ROC analysis, feature importance</p>
+                <p className="text-sm text-white/35">Expert comparison, SHAP analysis, stacking progression</p>
               </GlowingCard>
             </Link>
             <Link href="/dashboard/configs">
@@ -98,25 +105,36 @@ export default function DashboardPage() {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-neon-amber/10 mb-4 group-hover:scale-110 transition-transform">
                   <Settings className="w-5 h-5 text-neon-amber" />
                 </div>
-                <h3 className="text-base font-semibold text-white mb-1.5">Config Compare</h3>
-                <p className="text-sm text-white/35">Compare all 6 model configurations</p>
+                <h3 className="text-base font-semibold text-white mb-1.5">Expert Comparison</h3>
+                <p className="text-sm text-white/35">4 experts, stacking progression, meta-learner weights</p>
               </GlowingCard>
             </Link>
           </motion.div>
 
-          {/* Expanded Stats */}
+          {/* Expert Overview */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
             <GlowingCard className="p-6" glowColor="#8b5cf6">
-              <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-4 font-medium">All Metrics</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                <StatBlock label="MCC" value={m.mcc} decimals={4} color="#06b6d4" icon={<Activity className="w-3 h-3" />} />
-                <StatBlock label="Accuracy" value={m.accuracy} decimals={4} color="#30d158" icon={<Target className="w-3 h-3" />} />
-                <StatBlock label="Bal. Acc." value={m.balanced_accuracy} decimals={4} color="#3b82f6" icon={<TrendingUp className="w-3 h-3" />} />
-                <StatBlock label="Specificity" value={m.specificity} decimals={4} color="#8b5cf6" icon={<Shield className="w-3 h-3" />} />
-                <StatBlock label="NPV" value={m.npv} decimals={4} color="#ec4899" icon={<Target className="w-3 h-3" />} />
-                <StatBlock label="FPR" value={m.fpr} decimals={4} color="#ff9f0a" icon={<AlertTriangle className="w-3 h-3" />} />
-                <StatBlock label="FNR" value={m.fnr} decimals={4} color="#ff2d55" icon={<AlertTriangle className="w-3 h-3" />} />
-                <StatBlock label="Brier" value={m.brier} decimals={4} color="#06b6d4" icon={<Target className="w-3 h-3" />} />
+              <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-4 font-medium">Expert Overview</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {EXPERT_RESULTS.map((e) => {
+                  const colorMap: Record<string, string> = {
+                    "SHARP (HMI/SDO)": "#ef4444",
+                    "GOES-18 (XRS)": "#3b82f6",
+                    "SOLEXS (Aditya-L1)": "#22c55e",
+                    "HEL1OS (Aditya-L1)": "#a855f7",
+                  };
+                  const color = colorMap[e.label] || "#3b82f6";
+                  return (
+                    <div key={e.label} className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                        <span className="text-xs font-medium" style={{ color }}>{e.label.split(" ")[0]}</span>
+                      </div>
+                      <div className="text-lg font-bold font-mono text-white">{e.metrics.tss.toFixed(3)}</div>
+                      <div className="text-[9px] text-white/30 uppercase">TSS | {e.features} features</div>
+                    </div>
+                  );
+                })}
               </div>
             </GlowingCard>
           </motion.div>

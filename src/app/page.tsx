@@ -6,7 +6,7 @@ import { GlowingCard, MetricCard } from "@/components/aceternity/glowing-card";
 import { RadialGauge } from "@/components/aceternity/radial-gauge";
 import { AnimatedCounter, StatBlock } from "@/components/aceternity/animated-counter";
 import { SolarFlareIndicator } from "@/components/aceternity/solar-effects";
-import { BEST_MODEL, getFlareClass } from "@/lib/data";
+import { STACKING_RESULTS, getFlareClass } from "@/lib/data";
 import { ChevronRight, ExternalLink, Activity, Zap, Target, Cpu, Database, Clock, Sun } from "lucide-react";
 import Link from "next/link";
 
@@ -18,7 +18,7 @@ const NAV = [
 ];
 
 export default function HomePage() {
-  const m = BEST_MODEL.metrics;
+  const m = STACKING_RESULTS.metrics;
   const flux = 2.34e-7;
   const cls = getFlareClass(flux);
 
@@ -113,15 +113,15 @@ export default function HomePage() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-3xl font-bold text-white mb-3">Space Weather Intelligence</h2>
             <p className="text-white/30 max-w-lg mx-auto text-sm">
-              Real-time solar flare prediction using 19 engineered features from GOES X-ray satellite data
+              4-expert stacking solar flare prediction using GOES-18, HEL1OS, HMI/SHARP, and SOLEXS data
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { icon: Activity, title: "Real-time Monitoring", desc: "1-minute cadence X-ray flux data from GOES-16/18 satellites", color: "#06b6d4", glow: "glow-cyan" },
-              { icon: Zap, title: "ML Prediction", desc: "XGBoost model trained on 7.8M samples with TSS = 0.79", color: "#30d158", glow: "glow-green" },
-              { icon: Target, title: "ISRO Compliant", desc: "Exceeds ISRO targets: TSS ≥ 0.65, AUC ≥ 0.80, POD ≥ 0.80", color: "#ff9f0a", glow: "glow-amber" },
+              { icon: Activity, title: "Multi-Instrument", desc: "4 data sources: GOES-18 XRS, HEL1OS, HMI/SHARP, SOLEXS — 48 features total", color: "#06b6d4", glow: "glow-cyan" },
+              { icon: Zap, title: "Stacking Ensemble", desc: "4 XGBoost experts + logistic regression meta-learner, TSS = 0.61, AUC = 1.00", color: "#30d158", glow: "glow-green" },
+              { icon: Target, title: "Scientific Method", desc: "5x10 stratified CV, 1000 bootstrap CIs, SHAP explainability per expert", color: "#ff9f0a", glow: "glow-amber" },
             ].map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.15 }}>
@@ -142,10 +142,10 @@ export default function HomePage() {
       <section className="py-20 px-6 border-t border-white/[0.04]">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { icon: Database, label: "Training Samples", value: 7803585, color: "#06b6d4" },
-            { icon: Cpu, label: "Feature Count", value: 19, color: "#30d158" },
-            { icon: Sun, label: "Model Config", value: 1, suffix: "h C", color: "#ff9f0a" },
-            { icon: Clock, label: "Best TSS", value: 0.793, decimals: 3, color: "#8b5cf6" },
+            { icon: Database, label: "Samples", value: 190, color: "#06b6d4" },
+            { icon: Cpu, label: "Features (4 experts)", value: 48, color: "#30d158" },
+            { icon: Sun, label: "Horizon", value: 6, suffix: "h", color: "#ff9f0a" },
+            { icon: Clock, label: "Stacked TSS", value: 0.6067, decimals: 4, color: "#8b5cf6" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
