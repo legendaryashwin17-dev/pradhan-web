@@ -311,3 +311,95 @@ export const MULTI_INPUT_RESULTS = {
   physics_conclusion: STACKING_RESULTS.physics,
   data_sources: STACKING_RESULTS.data_sources,
 };
+
+// Real cross-cycle evaluation results from cross_cycle_results.json
+export const CROSS_CYCLE_RESULTS = {
+  description: "GOES-only expert evaluated across different time periods using time-based splits (no random CV leakage)",
+  total_samples: 1540,
+  date_range: ["2024-06-14", "2026-06-20"],
+  feature_columns: 8,
+  splits: [
+    {
+      name: "Within-Cycle (Train: Apr-May 2026, Test: Jun 2026)",
+      train_samples: 1078,
+      test_samples: 462,
+      m_flare_train: 113,
+      m_flare_test: 24,
+      tss: -0.162,
+      auc: 0.231,
+      pod: 0.000,
+      f1: 0.000,
+      tp: 0, fp: 71, tn: 367, fn: 24,
+      verdict: "FAIL — Model predicts all negatives (0 M+ flares detected)",
+    },
+    {
+      name: "Cross-Year (Train: All 2026, Test: Jun 2024)",
+      train_samples: 1486,
+      test_samples: 54,
+      m_flare_train: 137,
+      m_flare_test: 0,
+      tss: -0.130,
+      auc: null,
+      pod: 0.000,
+      f1: 0.000,
+      tp: 0, fp: 7, tn: 47, fn: 0,
+      verdict: "N/A — No M+ flares in test period",
+    },
+    {
+      name: "Random 5-Fold CV (all data)",
+      train_samples: 1232,
+      test_samples: 308,
+      tss: 0.207,
+      tss_std: 0.049,
+      auc: 0.778,
+      auc_std: 0.050,
+      pod: 0.263,
+      f1: 0.286,
+      verdict: "MODERATE — Temporal leakage likely inflates random CV",
+    },
+  ],
+  key_findings: [
+    "GOES expert TSS drops from 0.757 (random CV, 190 samples) to -0.162 (temporal, 1540 samples)",
+    "Random CV overestimates performance due to temporal leakage",
+    "GOES features alone are insufficient for cross-cycle M+ flare prediction",
+    "137 M+ flare hours in 2 years of data — rare event problem",
+    "Need multi-instrument fusion (SHARP + GOES + HEL1OS + SOLEXS) for reliable forecasting",
+  ],
+};
+
+// NOAA SWPC real-time API endpoint
+export const GOES_REALTIME_API = "https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json";
+
+export async function fetchRealtimeGOES(): Promise<{
+  xrsa: number;
+  xrsb: number;
+  time: string;
+  class: string;
+} | null> {
+  try {
+    const res = await fetch(GOES_REALTIME_API);
+    if (!res.ok) return null;
+    const data = await res.json();
+    
+    // API returns separate rows for XRS-A (0.05-0.4nm) and XRS-B (0.1-0.8nm)
+    const xrsb = data.find((d: any) => d.energy === "0.1-0.8nm" && d.flux > 0);
+    const xrsa = data.find((d: any) => d.energy === "0.05-0.4nm" && d.flux > 0);
+    
+    if (!xrsb) return null;
+    
+    const flux = xrsb.flux;
+    let cls = "B";
+    if (flux >= 1e-4) cls = "X";
+    else if (flux >= 1e-5) cls = "M";
+    else if (flux >= 1e-6) cls = "C";
+    
+    return {
+      xrsa: xrsa?.flux ?? 0,
+      xrsb: xrsb.flux,
+      time: xrsb.time_tag,
+      class: cls,
+    };
+  } catch {
+    return null;
+  }
+}
