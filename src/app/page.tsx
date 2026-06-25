@@ -6,7 +6,7 @@ import { GlowingCard, MetricCard } from "@/components/aceternity/glowing-card";
 import { RadialGauge } from "@/components/aceternity/radial-gauge";
 import { AnimatedCounter, StatBlock } from "@/components/aceternity/animated-counter";
 import { SolarFlareIndicator } from "@/components/aceternity/solar-effects";
-import { STACKING_RESULTS, getFlareClass } from "@/lib/data";
+import { STACKING_RESULTS, SCIENTIFIC_EVAL, getFlareClass } from "@/lib/data";
 import { ChevronRight, ExternalLink, Activity, Zap, Target, Cpu, Database, Clock, Sun } from "lucide-react";
 import Link from "next/link";
 
@@ -68,20 +68,24 @@ export default function HomePage() {
               </div>
 
               <div className="flex items-center justify-center gap-8 mb-8">
-                <RadialGauge value={m.tss} label="TSS" color="#06b6d4" glowColor="#3b82f6" size={130} />
-                <RadialGauge value={m.auc} label="AUC-ROC" color="#30d158" glowColor="#34d399" size={130} />
-                <RadialGauge value={m.pod} label="POD" color="#ff9f0a" glowColor="#fbbf24" size={130} />
-                <RadialGauge value={m.hss} label="HSS" color="#8b5cf6" glowColor="#a78bfa" size={130} />
+                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.tss} label="GOES TSS" color="#ff2d55" glowColor="#ff4d6d" size={130} />
+                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.cv_5fold_biased.tss} label="CV (biased)" color="#ff9f0a" glowColor="#fbbf24" size={130} />
+                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.auc} label="GOES AUC" color="#30d158" glowColor="#34d399" size={130} />
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="text-xs text-white/30 uppercase tracking-widest mb-1">Honest Metrics (Time-Based Splits)</div>
+                <div className="text-sm text-white/20">GOES-only model: {SCIENTIFIC_EVAL.goeOnly.walk_forward.n_splits} walk-forward splits, no threshold tuning</div>
               </div>
 
               <div className="grid grid-cols-6 gap-3">
                 {[
-                  { l: "Precision", v: m.precision, c: "#06b6d4" },
-                  { l: "Recall", v: m.recall, c: "#30d158" },
-                  { l: "F1", v: m.f1, c: "#3b82f6" },
-                  { l: "MCC", v: m.mcc, c: "#8b5cf6" },
-                  { l: "CSI", v: m.csi, c: "#ff9f0a" },
-                  { l: "Brier", v: m.brier, c: "#ec4899" },
+                  { l: "Walk-Forward TSS", v: SCIENTIFIC_EVAL.goeOnly.walk_forward.tss, c: "#ff2d55" },
+                  { l: "Expanding TSS", v: SCIENTIFIC_EVAL.goeOnly.expanding_window.tss, c: "#ff9f0a" },
+                  { l: "CV TSS (biased)", v: SCIENTIFIC_EVAL.goeOnly.cv_5fold_biased.tss, c: "#30d158" },
+                  { l: "Walk-Forward AUC", v: SCIENTIFIC_EVAL.goeOnly.walk_forward.auc, c: "#8b5cf6" },
+                  { l: "POD", v: SCIENTIFIC_EVAL.goeOnly.walk_forward.pod, c: "#06b6d4" },
+                  { l: "F1", v: SCIENTIFIC_EVAL.goeOnly.walk_forward.f1, c: "#ec4899" },
                 ].map((s) => (
                   <div key={s.l} className="text-center p-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
                     <div className="text-sm font-bold font-mono" style={{ color: s.c }}>{s.v.toFixed(3)}</div>
@@ -120,8 +124,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               { icon: Activity, title: "Multi-Instrument", desc: "4 data sources: GOES-18 XRS, HEL1OS, HMI/SHARP, SOLEXS — 48 features total", color: "#06b6d4", glow: "glow-cyan" },
-              { icon: Zap, title: "Stacking Ensemble", desc: "4 XGBoost experts + logistic regression meta-learner, TSS = 0.61, AUC = 1.00", color: "#30d158", glow: "glow-green" },
-              { icon: Target, title: "Scientific Method", desc: "5x10 stratified CV, 1000 bootstrap CIs, SHAP explainability per expert", color: "#ff9f0a", glow: "glow-amber" },
+              { icon: Zap, title: "Scientific Reality", desc: `GOES-only TSS = ${SCIENTIFIC_EVAL.goeOnly.walk_forward.tss.toFixed(3)} with time-based splits. 4-expert stacked model: TSS = 0.933 (random CV — biased)`, color: "#ff2d55", glow: "glow-red" },
+              { icon: Target, title: "Honest Evaluation", desc: "Walk-forward, expanding window, and cross-year validation. No threshold tuning on test data.", color: "#30d158", glow: "glow-green" },
             ].map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.15 }}>
@@ -142,10 +146,10 @@ export default function HomePage() {
       <section className="py-20 px-6 border-t border-white/[0.04]">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { icon: Database, label: "Samples", value: 190, color: "#06b6d4" },
-            { icon: Cpu, label: "Features (4 experts)", value: 48, color: "#30d158" },
+            { icon: Database, label: "GOES Samples", value: SCIENTIFIC_EVAL.dataset.n_samples, color: "#06b6d4" },
+            { icon: Cpu, label: "GOES Features", value: SCIENTIFIC_EVAL.dataset.features, color: "#30d158" },
             { icon: Sun, label: "Horizon", value: 6, suffix: "h", color: "#ff9f0a" },
-            { icon: Clock, label: "Stacked TSS", value: 0.6067, decimals: 4, color: "#8b5cf6" },
+            { icon: Clock, label: "GOES TSS (honest)", value: SCIENTIFIC_EVAL.goeOnly.walk_forward.tss, decimals: 3, color: "#ff2d55" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
@@ -157,7 +161,7 @@ export default function HomePage() {
 
       <footer className="py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="text-xs text-white/15">PRADHAN v2.0 — ISRO Aditya-L1</div>
+          <div className="text-xs text-white/15">PRADHAN v2.0 — ISRO Aditya-L1 — Honest Scientific Evaluation</div>
           <div className="text-xs text-white/15">GOES XRS × XGBoost</div>
         </div>
       </footer>

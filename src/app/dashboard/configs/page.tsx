@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { FloatingNav } from "@/components/aceternity/floating-nav";
 import { AuroraBackground } from "@/components/aceternity/aurora-background";
 import { GlowingCard } from "@/components/aceternity/glowing-card";
-import { EXPERT_RESULTS, STACKING_RESULTS } from "@/lib/data";
+import { EXPERT_RESULTS, STACKING_RESULTS, SCIENTIFIC_EVAL } from "@/lib/data";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ScatterChart, Scatter, ZAxis, Cell
@@ -69,7 +69,13 @@ export default function ConfigsPage() {
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-1">Expert Comparison</h1>
-            <p className="text-white/40 text-sm">Real results from 4-expert stacking pipeline — 5x10 stratified CV on 190 samples</p>
+            <p className="text-white/40 text-sm">GOES-only with time-based splits: TSS = {SCIENTIFIC_EVAL.goeOnly.walk_forward.tss.toFixed(3)} (honest). 4-expert stacked: TSS = 0.933 (random CV — biased by temporal leakage)</p>
+            <div className="mt-3 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+              <p className="text-xs text-red-400/80">
+                ⚠️ Scientific warning: The 4-expert stacked model (TSS=0.933) uses random CV on 190 samples without timestamps — this is NOT scientifically validated.
+                GOES-only with proper time-based splits gives TSS = -0.091. The true 4-expert TSS with temporal validation is unknown.
+              </p>
+            </div>
           </motion.div>
 
           {/* Expert Config Cards */}
