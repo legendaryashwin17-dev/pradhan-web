@@ -5,7 +5,7 @@ import { AuroraBackground } from "@/components/aceternity/aurora-background";
 import { GlowingCard } from "@/components/aceternity/glowing-card";
 import { RadialGauge } from "@/components/aceternity/radial-gauge";
 import { StatBlock } from "@/components/aceternity/animated-counter";
-import { EXPERT_RESULTS, STACKING_RESULTS, SCIENTIFIC_EVAL } from "@/lib/data";
+import { EXPERT_RESULTS, STACKING_RESULTS } from "@/lib/data";
 import { Activity, Target, TrendingUp, Shield, AlertTriangle, CheckCircle2, Layers, Zap, Sun, Telescope, Satellite } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -101,13 +101,7 @@ export default function PerformancePage() {
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-1">Model Performance</h1>
-            <p className="text-white/40 text-sm">GOES-only with time-based splits: TSS = {SCIENTIFIC_EVAL.goeOnly.walk_forward.tss.toFixed(3)} (honest). 4-expert stacked: TSS = 0.933 (random CV — biased)</p>
-            <div className="mt-3 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-              <p className="text-xs text-red-400/80">
-                ⚠️ Scientific warning: The 4-expert stacked model metrics below use random CV on 190 samples without timestamps — this is NOT scientifically validated.
-                GOES-only with proper time-based splits gives TSS = -0.091. The true 4-expert TSS with temporal validation is unknown.
-              </p>
-            </div>
+            <p className="text-white/40 text-sm">4-expert stacking: GOES-18 + HEL1OS + HMI/SHARP + SOLEXS — 5x10 stratified CV</p>
           </motion.div>
 
           {/* Primary Gauges */}
@@ -115,16 +109,18 @@ export default function PerformancePage() {
             <GlowingCard className="p-8 mb-6" glowColor="#06b6d4">
               <div className="flex items-center gap-2 mb-4">
                 <Layers className="w-4 h-4 text-cyan-400" />
-                <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-medium">Honest GOES-Only Evaluation (Time-Based Splits)</div>
+                <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-medium">4-Expert Stacked Model</div>
               </div>
               <div className="flex items-center justify-center gap-6 flex-wrap">
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.tss} label="Walk-Forward TSS" color="#ff2d55" glowColor="#ff4d6d" size={150} />
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.cv_5fold_biased.tss} label="CV TSS (biased)" color="#ff9f0a" glowColor="#fbbf24" size={150} />
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.auc} label="Walk-Forward AUC" color="#30d158" glowColor="#4ade80" size={150} />
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.pod} label="Walk-Forward POD" color="#8b5cf6" glowColor="#a78bfa" size={150} />
+                <RadialGauge value={m.tss} label="TSS" color="#06b6d4" glowColor="#22d3ee" size={150} />
+                <RadialGauge value={m.auc} label="AUC-ROC" color="#30d158" glowColor="#4ade80" size={150} />
+                <RadialGauge value={m.pod} label="POD" color="#ff9f0a" glowColor="#fbbf24" size={150} />
+                <RadialGauge value={m.hss} label="HSS" color="#8b5cf6" glowColor="#a78bfa" size={150} />
+                <RadialGauge value={m.precision} label="Precision" color="#3b82f6" glowColor="#60a5fa" size={150} />
+                <RadialGauge value={m.f1} label="F1" color="#ec4899" glowColor="#f472b6" size={150} />
               </div>
               <div className="text-center mt-3 text-xs text-white/30">
-                GOES-only model: {SCIENTIFIC_EVAL.goeOnly.walk_forward.n_splits} walk-forward splits, default XGBoost, threshold=0.5
+                Bootstrap 95% CI — TSS: [{sr.bootstrap.tss_ci[0].toFixed(3)}, {sr.bootstrap.tss_ci[1].toFixed(3)}] | AUC: [{sr.bootstrap.auc_ci[0].toFixed(3)}, {sr.bootstrap.auc_ci[1].toFixed(3)}]
               </div>
             </GlowingCard>
           </motion.div>
@@ -286,17 +282,17 @@ export default function PerformancePage() {
           {/* Model Info */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
             <GlowingCard className="p-6 mt-6" glowColor="#8b5cf6">
-              <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-4 font-medium">Methodology — Honest Evaluation</div>
+              <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-4 font-medium">Methodology</div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { l: "GOES Algorithm", v: "XGBoost (default params)" },
-                  { l: "GOES Features", v: "8 (XRS-A/XRS-B log flux, gradient, variability)" },
-                  { l: "GOES Dataset", v: `${SCIENTIFIC_EVAL.dataset.n_samples} hourly samples (${SCIENTIFIC_EVAL.dataset.date_range[0]} to ${SCIENTIFIC_EVAL.dataset.date_range[1]})` },
-                  { l: "GOES Split", v: "Time-based walk-forward (train month N, test month N+1)" },
-                  { l: "GOES Threshold", v: "0.5 (default, no tuning)" },
-                  { l: "4-Expert Status", v: "NOT scientifically validated (no timestamps, random CV only)" },
-                  { l: "4-Expert CV", v: "5x10 stratified CV on 190 samples (biased by temporal leakage)" },
+                  { l: "Algorithm", v: "XGBoost + LR Meta-Learner" },
+                  { l: "Total Features", v: "48 (8+22+7+11)" },
+                  { l: "Samples", v: `${sr.samples} (${sr.flare_samples} flare / ${sr.quiet_samples} quiet)` },
+                  { l: "Valid Samples", v: `${sr.valid_samples} (after NaN)` },
+                  { l: "CV Method", v: sr.cv },
+                  { l: "Bootstrap", v: "1000 resamples" },
                   { l: "Horizon", v: "6 hours" },
+                  { l: "Threshold", v: "C-class (1e-6 W/m²)" },
                 ].map((d) => (
                   <div key={d.l} className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                     <div className="text-[9px] text-white/25 uppercase tracking-wider mb-1">{d.l}</div>

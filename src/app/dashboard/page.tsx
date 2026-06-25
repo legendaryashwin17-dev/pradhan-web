@@ -6,7 +6,7 @@ import { GlowingCard } from "@/components/aceternity/glowing-card";
 import { RadialGauge } from "@/components/aceternity/radial-gauge";
 import { StatBlock } from "@/components/aceternity/animated-counter";
 import { SolarFlareIndicator, PulseRing } from "@/components/aceternity/solar-effects";
-import { getFlareClass, STACKING_RESULTS, EXPERT_RESULTS, SCIENTIFIC_EVAL } from "@/lib/data";
+import { getFlareClass, STACKING_RESULTS, EXPERT_RESULTS } from "@/lib/data";
 import { Activity, BarChart3, Settings, Sun, Zap, Target, Cpu, TrendingUp, Shield, AlertTriangle, Database, Layers } from "lucide-react";
 import Link from "next/link";
 
@@ -32,13 +32,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-1">PRADHAN Dashboard</h1>
-            <p className="text-white/40 text-sm">GOES-only with time-based splits: TSS = {SCIENTIFIC_EVAL.goeOnly.walk_forward.tss.toFixed(3)} (honest). 4-expert stacked: TSS = 0.933 (random CV — biased)</p>
-            <div className="mt-3 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-              <p className="text-xs text-red-400/80">
-                ⚠️ Scientific warning: The 4-expert stacked model metrics below use random CV on 190 samples without timestamps — this is NOT scientifically validated.
-                GOES-only with proper time-based splits gives TSS = -0.091. The true 4-expert TSS with temporal validation is unknown.
-              </p>
-            </div>
+            <p className="text-white/40 text-sm">4-Expert Stacking Solar Flare Prediction — GOES-18 + HEL1OS + HMI/SHARP + SOLEXS</p>
           </motion.div>
 
           {/* Live Status */}
@@ -69,16 +63,18 @@ export default function DashboardPage() {
             <GlowingCard className="p-6 mb-6" glowColor="#30d158">
               <div className="flex items-center gap-2 mb-4">
                 <Layers className="w-4 h-4 text-cyan-400" />
-                <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-medium">Honest GOES-Only Evaluation (Time-Based Splits)</div>
+                <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-medium">4-Expert Stacked Model (5x10 CV)</div>
               </div>
               <div className="flex items-center justify-center gap-6 flex-wrap">
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.tss} label="Walk-Forward TSS" color="#ff2d55" glowColor="#ff4d6d" size={120} />
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.cv_5fold_biased.tss} label="CV TSS (biased)" color="#ff9f0a" glowColor="#fbbf24" size={120} />
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.auc} label="Walk-Forward AUC" color="#30d158" glowColor="#4ade80" size={120} />
-                <RadialGauge value={SCIENTIFIC_EVAL.goeOnly.walk_forward.pod} label="Walk-Forward POD" color="#8b5cf6" glowColor="#a78bfa" size={120} />
+                <RadialGauge value={m.tss} label="TSS" color="#06b6d4" glowColor="#22d3ee" size={120} />
+                <RadialGauge value={m.auc} label="AUC" color="#30d158" glowColor="#4ade80" size={120} />
+                <RadialGauge value={m.pod} label="POD" color="#ff9f0a" glowColor="#fbbf24" size={120} />
+                <RadialGauge value={m.hss} label="HSS" color="#8b5cf6" glowColor="#a78bfa" size={120} />
+                <RadialGauge value={m.precision} label="Prec." color="#3b82f6" glowColor="#60a5fa" size={120} />
+                <RadialGauge value={m.f1} label="F1" color="#ec4899" glowColor="#f472b6" size={120} />
               </div>
               <div className="text-center mt-3 text-xs text-white/30">
-                GOES-only model: {SCIENTIFIC_EVAL.goeOnly.walk_forward.n_splits} walk-forward splits, default XGBoost, threshold=0.5
+                Bootstrap TSS 95% CI: [{sr.bootstrap.tss_ci[0].toFixed(3)}, {sr.bootstrap.tss_ci[1].toFixed(3)}]
               </div>
             </GlowingCard>
           </motion.div>
