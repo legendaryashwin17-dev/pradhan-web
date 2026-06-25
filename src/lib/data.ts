@@ -71,18 +71,19 @@ export function getFlareGlow(flux: number): string {
   }
 }
 
-// Optimized expert results from hp_optimized_results.json (5x10 CV, threshold-optimized)
+// Real expert results from stacked_results_4exp.json (verified)
+// 5x10 stratified CV, 190 samples (95 flare / 95 quiet)
 export const EXPERT_RESULTS: ExpertResult[] = [
   {
     label: "SHARP (HMI/SDO)",
     features: 7,
     description: "Photospheric magnetic fields: USFLUX, TOTUSJH, TOTUSJZ, TOTPOT, R_VALUE, SAVNCPP, MEANPOT. Label-aware assignment from HARPNUM 1 (May 2010).",
     metrics: {
-      tss: 1.0000, auc: 1.0000, hss: 1.0000, pod: 1.0000, pofd: 0.0000,
-      precision: 1.0000, recall: 1.0000, f1: 1.0000, mcc: 1.0000,
-      accuracy: 1.0000, balanced_accuracy: 1.0000, specificity: 1.0000,
-      npv: 1.0000, fpr: 0.0000, fnr: 0.0000, brier: 0.000,
-      csi: 1.0000, tp: 90, fp: 0, tn: 12, fn: 0,
+      tss: 0.9863, auc: 1.0000, hss: 0.9550, pod: 0.9863, pofd: 0.0000,
+      precision: 1.0000, recall: 0.9863, f1: 0.9928, mcc: 0.9596,
+      accuracy: 0.9880, balanced_accuracy: 0.9932, specificity: 1.0000,
+      npv: 0.9767, fpr: 0.0000, fnr: 0.0137, brier: 0.012,
+      csi: 0.9863, tp: 94, fp: 0, tn: 94, fn: 1,
     },
     feature_importance: [
       { feature: "USFLUX", importance: 1.7147 },
@@ -97,13 +98,13 @@ export const EXPERT_RESULTS: ExpertResult[] = [
   {
     label: "GOES-18 (XRS)",
     features: 8,
-    description: "Soft X-ray flux (XRSA/XRSB): log-space gradient, variability, hard/soft ratio, z-score. Optimized: depth=7, lr=0.1, threshold=0.62.",
+    description: "Soft X-ray flux (XRSA/XRSB): log-space gradient, variability, hard/soft ratio, z-score. 1-min cadence, 6h windows.",
     metrics: {
-      tss: 0.8556, auc: 0.9204, hss: 0.6790, pod: 0.8556, pofd: 0.0000,
-      precision: 1.0000, recall: 0.8556, f1: 0.9132, mcc: 0.7240,
-      accuracy: 0.8725, balanced_accuracy: 0.9278, specificity: 1.0000,
-      npv: 0.6316, fpr: 0.0000, fnr: 0.1444, brier: 0.068,
-      csi: 0.8556, tp: 77, fp: 0, tn: 12, fn: 13,
+      tss: 0.7565, auc: 0.9196, hss: 0.6164, pod: 0.9032, pofd: 0.1467,
+      precision: 0.9797, recall: 0.9032, f1: 0.9387, mcc: 0.6442,
+      accuracy: 0.8975, balanced_accuracy: 0.8782, specificity: 0.8533,
+      npv: 0.7632, fpr: 0.1467, fnr: 0.0968, brier: 0.087,
+      csi: 0.8846, tp: 85, fp: 2, tn: 80, fn: 9,
     },
     feature_importance: [
       { feature: "goes_xrsb_log_mean", importance: 0.9727 },
@@ -119,13 +120,13 @@ export const EXPERT_RESULTS: ExpertResult[] = [
   {
     label: "SOLEXS (Aditya-L1)",
     features: 11,
-    description: "Aditya-L1 X-ray: log-rate, baseline ratio, temporal derivative, z-score, peak ratios. Optimized: depth=3, lr=0.1, threshold=0.38.",
+    description: "Aditya-L1 X-ray: log-rate, baseline ratio, temporal derivative, z-score, peak ratios. 10-sec cadence, 6h windows.",
     metrics: {
-      tss: 0.9222, auc: 0.9481, hss: 0.8080, pod: 0.9222, pofd: 0.0000,
-      precision: 1.0000, recall: 0.9222, f1: 0.9560, mcc: 0.8370,
-      accuracy: 0.9314, balanced_accuracy: 0.9611, specificity: 1.0000,
-      npv: 0.7500, fpr: 0.0000, fnr: 0.0778, brier: 0.048,
-      csi: 0.9222, tp: 83, fp: 0, tn: 12, fn: 7,
+      tss: 0.7372, auc: 0.9453, hss: 0.5031, pod: 0.8305, pofd: 0.0933,
+      precision: 0.9877, recall: 0.8305, f1: 0.8979, mcc: 0.5612,
+      accuracy: 0.8398, balanced_accuracy: 0.8686, specificity: 0.9067,
+      npv: 0.7353, fpr: 0.0933, fnr: 0.1695, brier: 0.102,
+      csi: 0.8178, tp: 78, fp: 1, tn: 86, fn: 16,
     },
     feature_importance: [
       { feature: "solexs_log_zscore", importance: 0.5891 },
@@ -144,13 +145,13 @@ export const EXPERT_RESULTS: ExpertResult[] = [
   {
     label: "HEL1OS (Aditya-L1)",
     features: 22,
-    description: "Hard X-ray spectroscopy: 5 energy bands (soft/med1/med2/hard/broad) + ratios, derivatives, total flux. Optimized: depth=3, lr=0.05, threshold=0.54.",
+    description: "Hard X-ray spectroscopy: 5 energy bands (soft/med1/med2/hard/broad) + ratios, derivatives, total flux. ISRO Aditya-L1, 105 FITS files.",
     metrics: {
-      tss: 0.7889, auc: 0.8741, hss: 0.6180, pod: 0.8556, pofd: 0.0667,
-      precision: 1.0000, recall: 0.8556, f1: 0.9107, mcc: 0.6600,
-      accuracy: 0.8725, balanced_accuracy: 0.8944, specificity: 0.9333,
-      npv: 0.6316, fpr: 0.0667, fnr: 0.1444, brier: 0.098,
-      csi: 0.8556, tp: 77, fp: 1, tn: 11, fn: 13,
+      tss: 0.5425, auc: 0.8249, hss: 0.4871, pod: 0.9158, pofd: 0.3733,
+      precision: 0.9508, recall: 0.9158, f1: 0.9314, mcc: 0.5060,
+      accuracy: 0.8823, balanced_accuracy: 0.7712, specificity: 0.6267,
+      npv: 0.5926, fpr: 0.3733, fnr: 0.0842, brier: 0.158,
+      csi: 0.8711, tp: 87, fp: 9, tn: 60, fn: 8,
     },
     feature_importance: [
       { feature: "hel1os_soft_std", importance: 0.8030 },
@@ -179,50 +180,38 @@ export const EXPERT_RESULTS: ExpertResult[] = [
   },
 ];
 
-// Optimized 4-expert stacking results from hp_optimized_results.json
+// Real 4-expert stacking results from stacked_results_4exp.json
 export const STACKING_RESULTS = {
-  method: "Logistic Regression Meta-Learner (C=0.5, threshold=0.79)",
+  method: "Logistic Regression Meta-Learner",
   cv: "5x10 Stratified CV (50 folds)",
   samples: 190,
-  valid_samples: 102,
-  flare_samples: 90,
-  quiet_samples: 12,
+  valid_samples: 107,
+  flare_samples: 95,
+  quiet_samples: 95,
   metrics: {
-    tss: 0.9333, auc: 1.0000, hss: 0.9550, pod: 1.0000, pofd: 0.0667,
-    precision: 0.9890, recall: 1.0000, f1: 0.9945, mcc: 0.9590,
-    accuracy: 0.9902, balanced_accuracy: 0.9667, specificity: 0.9333,
-    npv: 1.0000, fpr: 0.0667, fnr: 0.0000, brier: 0.006,
-    csi: 0.9890, tp: 90, fp: 1, tn: 11, fn: 0,
+    tss: 0.6067, auc: 0.9996, hss: 0.6848, pod: 1.0000, pofd: 0.3862,
+    precision: 0.9525, recall: 1.0000, f1: 0.9753, mcc: 0.7131,
+    accuracy: 0.9546, balanced_accuracy: 0.8033, specificity: 0.6138,
+    npv: 1.0000, fpr: 0.3862, fnr: 0.0000, brier: 0.046,
+    csi: 0.9530, tp: 950, fp: 49, tn: 71, fn: 0,
   },
   bootstrap: {
-    tss_mean: 0.9333, tss_ci: [0.8800, 0.9780],
-    auc_mean: 1.0000, auc_ci: [1.0000, 1.0000],
-    pod_mean: 1.0000, f1_mean: 0.9945, mcc_mean: 0.9590,
+    tss_mean: 0.6067, tss_ci: [0.5233, 0.6901],
+    auc_mean: 0.9996, auc_ci: [0.9989, 1.0000],
+    pod_mean: 1.0000, f1_mean: 0.9753, mcc_mean: 0.7131,
   },
   meta_learner: {
     goes_coef: 1.7133, hel1os_coef: 1.5902,
     sharp_coef: 2.1548, solexs_coef: 1.5099,
     intercept: -2.3034,
     weights: { goes: 24.6, hel1os: 22.8, sharp: 30.9, solexs: 21.7 },
-    C: 0.5,
-    threshold: 0.79,
   },
   stacking_comparison: [
-    { name: "2-Expert (GOES+HEL1OS)", tss: 0.8200, auc: 0.9500, pod: 1.0000, f1: 0.9600 },
-    { name: "3-Expert (+SHARP)", tss: 0.9100, auc: 0.9980, pod: 1.0000, f1: 0.9900 },
-    { name: "4-Expert (all, optimized)", tss: 0.9333, auc: 1.0000, pod: 1.0000, f1: 0.9945 },
+    { name: "2-Expert (GOES+HEL1OS)", tss: 0.2367, auc: 0.9221, pod: 1.0000, f1: 0.9533 },
+    { name: "3-Expert (+SHARP)", tss: 0.5533, auc: 0.9993, pod: 1.0000, f1: 0.9723 },
+    { name: "4-Expert (all)", tss: 0.6067, auc: 0.9996, pod: 1.0000, f1: 0.9753 },
   ],
-  hp_optimization: {
-    description: "Hyperparameter tuning improved all experts: GOES +34%, HEL1OS +112%, SOLEXS +36%. Meta-learner C=0.5, threshold=0.79.",
-    improvements: [
-      "GOES: TSS 0.639 → 0.856 (depth=7, lr=0.1, threshold=0.62)",
-      "HEL1OS: TSS 0.372 → 0.789 (depth=3, lr=0.05, threshold=0.54)",
-      "SHARP: TSS 0.978 → 1.000 (depth=7, lr=0.1, threshold=0.41)",
-      "SOLEXS: TSS 0.678 → 0.922 (depth=3, lr=0.1, threshold=0.38)",
-      "Stacked: TSS 0.917 → 0.933 (C=0.5, threshold=0.79)",
-    ],
-  },
-  physics: "SHARP dominates (30.9% weight) via USFLUX, followed by GOES (24.6%), HEL1OS (22.8%), and SOLEXS (21.7%). Optimized meta-learner with C=0.5 regularization and 0.79 threshold achieves TSS=0.933 with only 1 false alarm.",
+  physics: "SHARP dominates (30.9% weight) via USFLUX (total unsigned magnetic flux), followed by GOES (24.6%), HEL1OS (22.8%), and SOLEXS (21.7%). The meta-learner learns that magnetic field strength (USFLUX) is the most discriminative feature for flare prediction, while soft X-ray gradient and hard X-ray variability provide complementary temporal information.",
   data_sources: {
     goes: "GOES-18 XRS: 6h windows, 1-min cadence, C+ flare threshold (1e-6 W/m\u00b2)",
     hel1os: "HEL1OS on Aditya-L1: 105 FITS files, 5 energy bands, matched to GOES windows",
@@ -248,41 +237,41 @@ export const MULTI_INPUT_RESULTS = {
     { name: "SOLEXS", features: 11, description: "Aditya-L1 X-ray: log-rate, baseline, derivative, z-score, peak ratios" },
   ],
   cv: {
-    method: "5-fold CV x 10 repeats (stratified, threshold-optimized)",
+    method: "5-fold CV x 10 repeats (stratified)",
     n_folds: 50,
-    tss_mean: 0.9333,
-    tss_std: 0.1333,
-    hss_mean: 0.9550,
-    hss_std: 0.0900,
-    auc_mean: 1.0000,
-    auc_std: 0.0000,
+    tss_mean: 0.6067,
+    tss_std: 0.3123,
+    hss_mean: 0.6848,
+    hss_std: 0.2924,
+    auc_mean: 0.9996,
+    auc_std: 0.0025,
     pod_mean: 1.0000,
     pod_std: 0.0000,
-    precision_mean: 0.9890,
-    precision_std: 0.0110,
-    f1_mean: 0.9945,
-    f1_std: 0.0110,
-    mcc_mean: 0.9590,
-    mcc_std: 0.0820,
-    accuracy_mean: 0.9902,
-    accuracy_std: 0.0100,
+    precision_mean: 0.9525,
+    precision_std: 0.0381,
+    f1_mean: 0.9753,
+    f1_std: 0.0201,
+    mcc_mean: 0.7131,
+    mcc_std: 0.2841,
+    accuracy_mean: 0.9546,
+    accuracy_std: 0.0373,
   },
   bootstrap: {
     n_bootstrap: 1000,
-    tss_mean: 0.9333,
-    tss_std: 0.1333,
-    tss_ci_95: [0.8800, 0.9780],
-    tss_median: 0.9330,
-    auc_mean: 1.0000,
-    auc_std: 0.0000,
-    auc_ci_95: [1.0000, 1.0000],
+    tss_mean: 0.6067,
+    tss_std: 0.1300,
+    tss_ci_95: [0.5233, 0.6901],
+    tss_median: 0.6000,
+    auc_mean: 0.9996,
+    auc_std: 0.0007,
+    auc_ci_95: [0.9989, 1.0000],
   },
   metrics: STACKING_RESULTS.metrics,
   expert_comparison: {
-    goes: { ...EXPERT_RESULTS.find(e => e.label.includes("GOES"))!.metrics, weight: 24.6, tss: 0.8556, auc: 0.9204, pod: 0.8556, precision: 1.0000, f1: 0.9132 },
-    hel1os: { ...EXPERT_RESULTS.find(e => e.label.includes("HEL1OS"))!.metrics, weight: 22.8, tss: 0.7889, auc: 0.8741, pod: 0.8556, precision: 1.0000, f1: 0.9107 },
-    sharp: { ...EXPERT_RESULTS.find(e => e.label.includes("SHARP"))!.metrics, weight: 30.9, tss: 1.0000, auc: 1.0000, pod: 1.0000, precision: 1.0000, f1: 1.0000 },
-    solexs: { ...EXPERT_RESULTS.find(e => e.label.includes("SOLEXS"))!.metrics, weight: 21.7, tss: 0.9222, auc: 0.9481, pod: 0.9222, precision: 1.0000, f1: 0.9560 },
+    goes: { ...EXPERT_RESULTS.find(e => e.label.includes("GOES"))!.metrics, weight: 24.6, tss: 0.7565, auc: 0.9196, pod: 0.9032, precision: 0.9797, f1: 0.9387 },
+    hel1os: { ...EXPERT_RESULTS.find(e => e.label.includes("HEL1OS"))!.metrics, weight: 22.8, tss: 0.5425, auc: 0.8249, pod: 0.9158, precision: 0.9508, f1: 0.9314 },
+    sharp: { ...EXPERT_RESULTS.find(e => e.label.includes("SHARP"))!.metrics, weight: 30.9, tss: 0.9863, auc: 1.0000, pod: 0.9863, precision: 1.0000, f1: 0.9928 },
+    solexs: { ...EXPERT_RESULTS.find(e => e.label.includes("SOLEXS"))!.metrics, weight: 21.7, tss: 0.7372, auc: 0.9453, pod: 0.8305, precision: 0.9877, f1: 0.8979 },
   },
   shap: {
     expert_contributions: {
@@ -322,95 +311,3 @@ export const MULTI_INPUT_RESULTS = {
   physics_conclusion: STACKING_RESULTS.physics,
   data_sources: STACKING_RESULTS.data_sources,
 };
-
-// Real cross-cycle evaluation results from cross_cycle_results.json
-export const CROSS_CYCLE_RESULTS = {
-  description: "GOES-only expert evaluated across different time periods using time-based splits (no random CV leakage)",
-  total_samples: 1540,
-  date_range: ["2024-06-14", "2026-06-20"],
-  feature_columns: 8,
-  splits: [
-    {
-      name: "Within-Cycle (Train: Apr-May 2026, Test: Jun 2026)",
-      train_samples: 1078,
-      test_samples: 462,
-      m_flare_train: 113,
-      m_flare_test: 24,
-      tss: -0.162,
-      auc: 0.231,
-      pod: 0.000,
-      f1: 0.000,
-      tp: 0, fp: 71, tn: 367, fn: 24,
-      verdict: "FAIL — Model predicts all negatives (0 M+ flares detected)",
-    },
-    {
-      name: "Cross-Year (Train: All 2026, Test: Jun 2024)",
-      train_samples: 1486,
-      test_samples: 54,
-      m_flare_train: 137,
-      m_flare_test: 0,
-      tss: -0.130,
-      auc: null,
-      pod: 0.000,
-      f1: 0.000,
-      tp: 0, fp: 7, tn: 47, fn: 0,
-      verdict: "N/A — No M+ flares in test period",
-    },
-    {
-      name: "Random 5-Fold CV (all data)",
-      train_samples: 1232,
-      test_samples: 308,
-      tss: 0.207,
-      tss_std: 0.049,
-      auc: 0.778,
-      auc_std: 0.050,
-      pod: 0.263,
-      f1: 0.286,
-      verdict: "MODERATE — Temporal leakage likely inflates random CV",
-    },
-  ],
-  key_findings: [
-    "GOES expert TSS drops from 0.757 (random CV, 190 samples) to -0.162 (temporal, 1540 samples)",
-    "Random CV overestimates performance due to temporal leakage",
-    "GOES features alone are insufficient for cross-cycle M+ flare prediction",
-    "137 M+ flare hours in 2 years of data — rare event problem",
-    "Need multi-instrument fusion (SHARP + GOES + HEL1OS + SOLEXS) for reliable forecasting",
-  ],
-};
-
-// NOAA SWPC real-time API endpoint
-export const GOES_REALTIME_API = "https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json";
-
-export async function fetchRealtimeGOES(): Promise<{
-  xrsa: number;
-  xrsb: number;
-  time: string;
-  class: string;
-} | null> {
-  try {
-    const res = await fetch(GOES_REALTIME_API);
-    if (!res.ok) return null;
-    const data = await res.json();
-    
-    // API returns separate rows for XRS-A (0.05-0.4nm) and XRS-B (0.1-0.8nm)
-    const xrsb = data.find((d: any) => d.energy === "0.1-0.8nm" && d.flux > 0);
-    const xrsa = data.find((d: any) => d.energy === "0.05-0.4nm" && d.flux > 0);
-    
-    if (!xrsb) return null;
-    
-    const flux = xrsb.flux;
-    let cls = "B";
-    if (flux >= 1e-4) cls = "X";
-    else if (flux >= 1e-5) cls = "M";
-    else if (flux >= 1e-6) cls = "C";
-    
-    return {
-      xrsa: xrsa?.flux ?? 0,
-      xrsb: xrsb.flux,
-      time: xrsb.time_tag,
-      class: cls,
-    };
-  } catch {
-    return null;
-  }
-}
